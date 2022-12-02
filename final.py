@@ -99,8 +99,6 @@ class Scrape:
 
         options = webdriver.ChromeOptions()
         options.add_experimental_option("debuggerAddress", "localhost:9222")
-        # ser = Service("C:\\Users\\Student\\OneDrive\\Desktop\\coding\\chromedriver.exe")
-        # self.driver = webdriver.Chrome(service=ser, options=options)
         self.driver = webdriver.Chrome(options=options, service=Service(ChromeDriverManager().install()))
         self.driver.implicitly_wait(10)
 
@@ -258,31 +256,13 @@ class Scrape:
             sleep(5)
         else:
             None
-        
 
-
-        vendor = "TEG"
-        type = " "
-        updatedDir = main_dir.replace('newupload/', ' ') # removing upload/ from string
-        tags = f"{updatedDir}, {sub_dir}, {subsub_dir}" # adding tags of the main directories
-        option1 = "Title"
-        option1value = "Default Title"
-        variantgrams = "0"
-        inventory = "shopify"
-        qty = "999"
-        policy = "deny"
-        fulfill = "manual"
-        shipping = "TRUE"
-        taxable = "TRUE"
-        barcode = " "
-        published = "TRUE"
-        discount = None
-        manual = True
-        compareAtPrice = " "
+        tags = f"{main_dir}, {sub_dir}, {subsub_dir}" # adding tags of the main directories
 
         for title, url, price in zip(title_list, href_list, price_list):
             print("*")
             print(colored(f"{title}","green"))
+            price = float(price)
 
             handle = "-".join(title.split()).lower() # formatting the titles for the shopify handle
 
@@ -305,6 +285,7 @@ class Scrape:
             product.vendor = "TEG"
             product.tags = tags
             product.id
+
             print("Old price:",price)
             percent = price/100*45 # 45% of price
             price = price + percent # adding percentage back to price
@@ -313,13 +294,32 @@ class Scrape:
             print("Updated price:",price)    
             variant = shopify.Variant({'price': price, 'requires_shipping': False, "inventory_management": "shopify", "inventory_quantity": "999", "inventory_tracker":"shopify"})
             product.variants = [variant]
+
+            
+            all_images = []
+            count = 0
+            varCount = 0
+            product_images = soup.find_all('a', {'class':'gallery__thumb-link'}) 
+            # finding all the images and adding them to a list
+            for i in product_images:
+                get_href = i["href"]
+                all_images.append(get_href)
+                count += 1
+
+            print(colored(f"Adding {count} images", "green"))
+            
+            # creating variables from image list
+            shopify_images=[]
+            dict = {}
+            for url in all_images:
+                varCount += 1
+                var = "image" + str(varCount+1)
+                dict[var] = shopify.Image({'src':f'{url}'})
+                shopify_images.append(dict[var])
+            product.images = shopify_images # adding them to the product images
             product.save()
 
-
-            # image1 = shopify.Image({'src':'https://t2.gstatic.com/licensed-image?q=tbn:ANd9GcQ9oKQNXxgr-lTH1Z0o9ZaZjy6iN8Ccj8hiQN_zf0qM3aSxRsDNaYlALUh8Z1rQsD-KTme5L8Y2TcxJmjk'})
-            # image2 = shopify.Image({'src':'https://m.media-amazon.com/images/M/MV5BMTE5MjM5MzM3M15BMl5BanBnXkFtZTYwOTEzOTY0._V1_UY264_CR5,0,178,264_AL_.jpg'})
-            # product.images = [image1, image2]
-
+            # adding the product to created collections
             a = shopify.Collect({ 'product_id': product.id, 'collection_id': mainCollectionID })
             a.save()
             print(colored(f"'{title}' ({product.id}) was added to '{mainCollectionID}'", "green"))
@@ -331,79 +331,16 @@ class Scrape:
             print(colored(f"'{title}' ({product.id}) was added to '{subsub_collection.id}'", "green"))
 
             print("*")
-
-            
-
             product.save()
 
-    shopify.ShopifyResource.clear_session()
+    shopify.ShopifyResource.clear_session() # clearing the session
 
         # also need a find a way to track missing products, probably just add try and except and save the title 
-
-        # adding the product to all the collections made
-
-        # need to solve the images
-
-
-        # # ******************* Creating spreadsheet in folder 'bin'  ******************* #
-        # with open(f'bin/{spreadsheet_name}', mode='w', encoding="utf-8") as employee_file:
-
-        #     employee_writer = csv.writer(employee_file, delimiter=',', quotechar='"', quoting=csv.QUOTE_MINIMAL)
-        #     employee_writer.writerow(['Handle'] + ['Title'] + ['Body (HTML)'] + ['Vendor'] + ['Type'] + ['Tags'] + ['Published'] + ['Option1 Name'] + ['Option1 Value'] + ['Variant Grams'] + ['Variant Inventory Tracker'] + ['Variant Inventory Qty'] + ['Variant Inventory Policy'] + ['Variant Fulfillment Service'] + ['Variant Price'] + ['Variant Compare At Price'] + ['Variant Requires Shipping'] + ['Variant Taxable'] + ['Variant Barcode'] + ['Image Src'])
-        #     for i in title:
-        #         productCount += 1
-                
-        #     for title, url, price in zip(title_list, href_list, price_list):
-        #         print(colored(f"{title}","green"))
-        #         # print(url)
-        #         if "," in price: # if price contains a comma
-        #             price = price.replace(',', '')
-        #             price = float(price)
-        #         else:
-        #             price = float(price)
-
-        #         print("Old price:",price)
-        #         percent = price/100*45 # 45% of price
-        #         price = price + percent # adding percentage back to price
-        #         price = format(price, '.2f')
-        #         price = float(price)
-        #         print("Updated price:",price)    
-
-        #         handle = "-".join(title.split()).lower() # formatting the titles for the shopify handle
-
-        #         a = requests.get(url)
-        #         soup = BeautifulSoup(a.text, features="html.parser")
-            
-        #         d = soup.find('div', {'class':'product__accordion-content-inner'})
-        #         desc = d.text # description
-        #         # print(desc)
-        #         print(colored("Collected description","green"))
-
-
-        #         table = soup.find('table', {'class':'product__techspec'})
-        #         # print(table)
-        #         print(colored("Collected table","green"))
-
-        #         final = str(desc) + "<br>" + "<br>" + str(table)
-        #         all_images = []
-        #         count = 0
-        #         newcount = 1
-        #         product_images = soup.find_all('a', {'class':'gallery__thumb-link'})
-        #         for i in product_images:
-        #             get_href = i["href"]
-        #             all_images.append(get_href)
-        #             print(colored(f"{get_href}","green"))
-        #             count += 1
-        #         # if it has more than one product image display it separately
-        #         if count > 1:
-        #             employee_writer.writerow([f'{handle}'] + [f'{title}'] + [f'{final}'] + [f'{vendor}'] + [f'{type}'] + [f'{tags}'] + [f'{published}'] + [f'{option1}'] + [f'{option1value}'] + [f'{variantgrams}'] + [f'{inventory}'] + [f'{qty}'] + [f'{policy}'] + [f'{fulfill}'] + [f'{price}'] + [f'{compareAtPrice}'] + [f'{shipping}'] + [f'{taxable}'] + [f'{barcode}'])
-        #             for image in all_images:
-        #                 employee_writer.writerow([f'{handle}'] + [' '] + [' '] + [' '] + [' '] + [' '] + [' '] + [' '] + [' '] + [' '] + [' '] + [' '] + [' '] + [' '] + [' '] + [' '] + [' '] + [' '] + [' '] + [f'{image}'])
-        #         else:
-        #             employee_writer.writerow([f'{handle}'] + [f'{title}'] + [f'{final}'] + [f'{vendor}'] + [f'{type}'] + [f'{tags}'] + [f'{published}'] + [f'{option1}'] + [f'{option1value}'] + [f'{variantgrams}'] + [f'{inventory}'] + [f'{qty}'] + [f'{policy}'] + [f'{fulfill}'] + [f'{price}'] + [f'{compareAtPrice}'] + [f'{shipping}'] + [f'{taxable}'] + [f'{barcode}'] + [f'{get_href}'])
-
-
-
-
+        # maybe add a product count?
+        # add the quantity
+        # or see if a collection doesn't have any products in. if images are none, if title is none blah blah blah. 
+        # or possibly see if you can change the script, if you can't collect products, run a function that goes back to the category and does it a different way
         
+        # then add all the collections to the navigation
+
 Scrape()
