@@ -26,14 +26,13 @@ from webdriver_manager.chrome import ChromeDriverManager
 from win10toast import ToastNotifier
 
 
-# event listener to check whether the price has been changed or not, checks the stock when a user wants to go to it;
-# count of products scraped
+
+# add the quantity -> will have to do it manually
+# check if out of stock code works -> https://www.youtube.com/watch?v=CbsbunnH8Q0
 
 
-# clean up code
+# then add all the collections to the navigation
 
-# the output file needs to be the updated name ? then if the updated name doesn't work, then do it??? idk
-# just add the dirUpdated statement to the pd output code
 
 class Scrape:
     def checkTitle(self, title):
@@ -114,7 +113,11 @@ class Scrape:
             sleep(2)
             self.driver.find_element(By.XPATH, "/html/body/div[2]/main/div[2]/div/div[3]/div/form/fieldset/div[4]/button/span") # clicking submit
             print(colored("Successfully logged in","green"))
+        
+        html = self.driver.page_source # getting current page source
+        soup = BeautifulSoup(html, features="html.parser")
 
+        
         # ******************* Scraping categories from categories.txt ******************* #
         for url in categories:
             try:
@@ -282,7 +285,7 @@ class Scrape:
             product = shopify.Product()
             product.title = title
             product.body_html = final
-            product.vendor = "TEG"
+            product.vendor = "TES"
             product.tags = tags
             product.id
 
@@ -333,14 +336,24 @@ class Scrape:
             print("*")
             product.save()
 
+            with open("products.txt", "a") as f:
+                f.write(title + " "+ str(product.id) + "\n")
+                
+    
+    # def check_qty(): # checking if products are out of stock and editing them.
+    #     test = []
+    #     for i in soup.find_all('div', {'class':'grid-item'}):
+    #         test.append(i.text)
+        
+    #     for i in test:
+    #         i = i.lower()
+    #         if "out of stock" in i:
+    #             print(i)
+    # product = shopify.Product.find(292082188312)
+
+
     shopify.ShopifyResource.clear_session() # clearing the session
 
-        # also need a find a way to track missing products, probably just add try and except and save the title 
-        # maybe add a product count?
-        # add the quantity
-        # or see if a collection doesn't have any products in. if images are none, if title is none blah blah blah. 
-        # or possibly see if you can change the script, if you can't collect products, run a function that goes back to the category and does it a different way
-        
-        # then add all the collections to the navigation
+
 
 Scrape()

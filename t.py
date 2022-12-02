@@ -24,15 +24,23 @@ shopify.ShopifyResource.activate_session(session)
 product = shopify.Product()
 product.title = "Shopify Logo T-Shirt"
 product.body_html = "Test description"
-product.vendor = "TEG"
+product.vendor = "TES"
+product.status = "Draft"
+product.id
+product.save()
 variant = shopify.Variant({'price': 9.99, 'requires_shipping': True, "inventory_management": "shopify", "inventory_tracker": "shopify", "inventory_quantity": 999})
 product.variants = [variant]
+
+product.save()
+# shopify.InventoryLevel.set(location_id = 71666729216, inventory_item_id=8076701729024, available=999)
+
+
 # image1 = shopify.Image({'src':'https://t2.gstatic.com/licensed-image?q=tbn:ANd9GcQ9oKQNXxgr-lTH1Z0o9ZaZjy6iN8Ccj8hiQN_zf0qM3aSxRsDNaYlALUh8Z1rQsD-KTme5L8Y2TcxJmjk'})
 # image2 = shopify.Image({'src':'https://m.media-amazon.com/images/M/MV5BMTE5MjM5MzM3M15BMl5BanBnXkFtZTYwOTEzOTY0._V1_UY264_CR5,0,178,264_AL_.jpg'})
 # product.images = [image1, image2]
-product.save()
+# product.save()
 
-print(f"Product '{product.title}' created")
+print(f"Product '{product.title}' created with the id of {product.id}")
 
 # collect = shopify.Collect({ 'product_id': product.id, 'collection_id': custom_collection.id })
 # collect.save()
