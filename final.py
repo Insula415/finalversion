@@ -265,7 +265,11 @@ class Scrape:
         for title, url, price in zip(title_list, href_list, price_list):
             print("*")
             print(colored(f"{title}","green"))
-            price = float(price)
+            if "," in price: # if price contains a comma
+                price = price.replace(',', '')
+                price = float(price)
+            else:
+                price = float(price)
 
             handle = "-".join(title.split()).lower() # formatting the titles for the shopify handle
 
